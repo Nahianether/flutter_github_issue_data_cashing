@@ -1,4 +1,5 @@
 import 'package:pattern_m/src/modules/home/model/git.issue.model.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../api/home.api.dart';
@@ -16,8 +17,8 @@ class HomeProvider extends AsyncNotifier<List<GitIssue>?> {
   int page = 0;
   bool isLoading = false;
 
-  // RefreshController refreshController =
-  //     RefreshController(initialRefresh: false);
+  RefreshController refreshController =
+      RefreshController(initialRefresh: false);
 
   @override
   FutureOr<List<GitIssue>?> build() async {
@@ -35,6 +36,15 @@ class HomeProvider extends AsyncNotifier<List<GitIssue>?> {
     isLoading = true;
     gitIssue = [...gitIssue, ...?await getIssues(page)];
     isLoading = false;
+  }
+
+  Future<void> refresh() async {
+    page = 0;
+    final issues = await getIssues(page);
+    if (issues != null) gitIssue = issues;
+    issueList();
+    refreshController.refreshCompleted();
+    ref.notifyListeners();
   }
 }
 
